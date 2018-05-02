@@ -14,6 +14,8 @@ You will need the following before getting started.
 * Virtualbox - https://virtualbox.com
 * Vagrant - https://vagrantup.com
 * Git - https://git-scm.com/ (optional, you can download directly from Github)
+* Computer with at least 8GB of memory - I will note if there is a need
+to create more than a few machines, but each one will use 1GB of memory.
 
 Once you have those installed, you can continue to the next part.
 

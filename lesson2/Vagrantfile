@@ -1,0 +1,136 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# Lesson 2 Vagrantfile
+# We are going to create an example showing server directives
+# This creates five machines:
+# 1 - HAProxy server
+# 2 - West Coast Web servers
+# 2 - East Coast Web servers
+# Author: Robert Freiberger
+# Date: 5/2/2018
+# License: BSD
+$webscript = <<-SCRIPT
+echo '10.0.0.100       haproxy1   haproxy1' >> /etc/hosts
+echo '10.0.0.101       west1       west1' >> /etc/hosts
+echo '10.0.0.102       west2       west2' >> /etc/hosts
+echo '172.16.0.101     east1       east1' >> /etc/hosts
+echo '172.16.0.102     east2       east2' >> /etc/hosts
+sudo apt-get update -y
+sudo apt install nginx -y
+sudo systemctl enable nginx
+sudo systemctl start nginx
+sudo mv /var/www/html/index.nginx-debian.html /var/www/html/index.nginx-debian.html.old
+echo "Welcome to Server:${HOSTINFO}" > /var/www/html/index.html
+SCRIPT
+
+$haproxyscript = <<-SCRIPT
+echo '10.0.0.100       haproxy1   haproxy1' >> /etc/hosts
+echo '10.0.0.101       west1       west1' >> /etc/hosts
+echo '10.0.0.102       west2       west2' >> /etc/hosts
+echo '172.16.0.101     east1       east1' >> /etc/hosts
+echo '172.16.0.102     east2       east2' >> /etc/hosts
+sudo apt-get update -y
+sudo apt-get install software-properties-common -y
+sudo add-apt-repository ppa:vbernat/haproxy-1.8 -y
+sudo apt-get update -y
+sudo apt-get install haproxy=1.8.\* -y
+sudo ip address add 10.0.0.100 dev enp0s3
+sudo cat <<EOT >> /etc/haproxy/haproxy.cfg
+frontend westcoast_prod
+        bind 10.0.0.100:8080
+        default_backend westcoast_primary
+
+frontend eastcoast_backup
+        bind 10.0.0.99:8080
+        default_backend eastcoast_secondary
+
+backend westcoast_primary
+        balance roundrobin
+        server west1 10.0.0.101:80
+        server west2 10.0.0.102:80
+
+backend eastcoast_secondary
+        balance roundrobin
+        server east1 172.16.0.101
+        server east2 172.16.0.102
+
+listen stats
+        bind *:8080
+        mode  http
+        stats enable
+        stats uri /stats
+        stats auth admin:Password1
+EOT
+sudo systemctl enable haproxy
+sudo systemctl restart haproxy
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.define "haproxyserver" do |haproxyserver|
+    haproxyserver.vm.box = "ubuntu/xenial64"
+    haproxyserver.vm.hostname = "haproxy1"
+    haproxyserver.vm.network "private_network", ip: "10.0.0.100"
+    haproxyserver.vm.network "private_network", ip: "10.0.0.99"
+    haproxyserver.vm.provider "virtualbox" do |v|
+      v.name = "haproxy1"
+      v.customize ["modifyvm", :id, "--memory", 1024]
+      v.customize ["modifyvm", :id, "--cpus", 1]
+      v.customize ["modifyvm", :id, "--name", "haproxyserver"]
+    end
+    haproxyserver.vm.provision "shell", inline: $haproxyscript
+  end
+
+  config.vm.define "west1" do |west1|
+    west1.vm.box = "ubuntu/xenial64"
+    west1.vm.hostname = "west1"
+    west1.vm.network "private_network", ip: "10.0.0.101"
+    west1.vm.provider "virtualbox" do |v|
+      v.name = "west1"
+      v.customize ["modifyvm", :id, "--memory", 1024]
+      v.customize ["modifyvm", :id, "--cpus", 1]
+      v.customize ["modifyvm", :id, "--name", "west1"]
+    end
+    west1.vm.provision "shell", inline: $webscript, \
+      env: {"HOSTINFO" => "west1 - 10.0.0.101"}
+  end
+
+  config.vm.define "west2" do |west2|
+    west2.vm.box = "ubuntu/xenial64"
+    west2.vm.hostname = "west2"
+    west2.vm.network "private_network", ip: "10.0.0.102"
+    west2.vm.provider "virtualbox" do |v|
+      v.name = "west2"
+      v.customize ["modifyvm", :id, "--memory", 1024]
+      v.customize ["modifyvm", :id, "--cpus", 1]
+      v.customize ["modifyvm", :id, "--name", "west2"]
+    end
+    west2.vm.provision "shell", inline: $webscript, \
+      env: {"HOSTINFO" => "west2 - 10.0.0.102"}
+  end
+  config.vm.define "east1" do |east1|
+    east1.vm.box = "ubuntu/xenial64"
+    east1.vm.hostname = "east1"
+    east1.vm.network "private_network", ip: "172.16.0.101"
+    east1.vm.provider "virtualbox" do |v|
+      v.name = "east1"
+      v.customize ["modifyvm", :id, "--memory", 1024]
+      v.customize ["modifyvm", :id, "--cpus", 1]
+      v.customize ["modifyvm", :id, "--name", "east1"]
+    end
+    east1.vm.provision "shell", inline: $webscript, \
+      env: {"HOSTINFO" => "east1 - 172.16.0.101"}
+  end
+  config.vm.define "east2" do |east2|
+    east2.vm.box = "ubuntu/xenial64"
+    east2.vm.hostname = "east2"
+    east2.vm.network "private_network", ip: "172.16.0.102"
+    east2.vm.provider "virtualbox" do |v|
+      v.name = "east2"
+      v.customize ["modifyvm", :id, "--memory", 1024]
+      v.customize ["modifyvm", :id, "--cpus", 1]
+      v.customize ["modifyvm", :id, "--name", "east2"]
+    end
+    east2.vm.provision "shell", inline: $webscript, \
+      env: {"HOSTINFO" => "east2 - 172.16.0.102"}
+  end
+end
