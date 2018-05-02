@@ -4,7 +4,7 @@
 # This will create a simple three node HAProxy setup
 # Author: Robert Freiberger
 # Date: 5/2/2018
-# License: BSD 
+# License: BSD
 $webscript = <<-SCRIPT
 echo '10.0.0.100       haproxy1   haproxy1' >> /etc/hosts
 echo '10.0.0.101       web1       web1' >> /etc/hosts
@@ -44,7 +44,7 @@ listen stats
         stats auth admin:Password1
 EOT
 sudo systemctl enable haproxy
-sudo systemctl start haproxy
+sudo systemctl restart haproxy
 SCRIPT
 
 Vagrant.configure("2") do |config|
