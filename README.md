@@ -59,62 +59,10 @@ Welcome to Ubuntu 16.04.4 LTS (GNU/Linux 4.4.0-119-generic x86_64)
 
 Last login: Tue May  1 21:32:21 2018 from 10.0.2.2
 ```
-4) To login to each machine, you can use the command ``$ vagrant ssh <vm name>``, example below
 
-```
-$ vagrant ssh haproxyserver
-Welcome to Ubuntu 16.04.4 LTS (GNU/Linux 4.4.0-119-generic x86_64)
+5) You can test HAProxy now
 
- * Documentation:  https://help.ubuntu.com
- * Management:     https://landscape.canonical.com
- * Support:        https://ubuntu.com/advantage
+Naviagate your browser to the following address http://10.0.0.100:8080 and you should 
+see the Web1 or Web2 hosts showup. Try refreshing to see this switch. 
 
-  Get cloud support with Ubuntu Advantage Cloud Guest:
-    http://www.ubuntu.com/business/services/cloud
-
-9 packages can be updated.
-4 updates are security updates.
-
-
-Last login: Tue May  1 21:32:21 2018 from 10.0.2.2
-```
-4) To login to each machine, you can use the command ``$ vagrant ssh <vm name>``, example below
-
-```
-$ vagrant ssh haproxyserver
-Welcome to Ubuntu 16.04.4 LTS (GNU/Linux 4.4.0-119-generic x86_64)
-
- * Documentation:  https://help.ubuntu.com
- * Management:     https://landscape.canonical.com
- * Support:        https://ubuntu.com/advantage
-
-  Get cloud support with Ubuntu Advantage Cloud Guest:
-    http://www.ubuntu.com/business/services/cloud
-
-9 packages can be updated.
-4 updates are security updates.
-
-
-Last login: Tue May  1 21:32:21 2018 from 10.0.2.2
-```
-4) To login to each machine, you can use the command ``$ vagrant ssh <vm name>``, example below
-
-```
-$ vagrant ssh haproxyserver
-Welcome to Ubuntu 16.04.4 LTS (GNU/Linux 4.4.0-119-generic x86_64)
-
- * Documentation:  https://help.ubuntu.com
- * Management:     https://landscape.canonical.com
- * Support:        https://ubuntu.com/advantage
-
-  Get cloud support with Ubuntu Advantage Cloud Guest:
-    http://www.ubuntu.com/business/services/cloud
-
-9 packages can be updated.
-4 updates are security updates.
-
-
-Last login: Tue May  1 21:32:21 2018 from 10.0.2.2
-```
-
-
+6) More to be added!
