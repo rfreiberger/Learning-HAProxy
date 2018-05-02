@@ -1,5 +1,10 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
+# Lesson 1 Vagrantfile
+# This will create a simple three node HAProxy setup
+# Author: Robert Freiberger
+# Date: 5/2/2018
+# License: BSD 
 $webscript = <<-SCRIPT
 echo '10.0.0.100       haproxy1   haproxy1' >> /etc/hosts
 echo '10.0.0.101       web1       web1' >> /etc/hosts
