@@ -1,4 +1,6 @@
-$script1 = <<-SCRIPT
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+$webscript = <<-SCRIPT
 echo '10.0.0.100       haproxy1   haproxy1' >> /etc/hosts
 echo '10.0.0.101       web1       web1' >> /etc/hosts
 echo '10.0.0.102       web2       web2' >> /etc/hosts
@@ -6,9 +8,11 @@ sudo apt-get update -y
 sudo apt install nginx -y
 sudo systemctl enable nginx
 sudo systemctl start nginx
+sudo mv /var/www/html/index.nginx-debian.html /var/www/html/index.nginx-debian.html.old
+echo "Welcome to Server:${HOSTINFO}" > /var/www/html/index.html
 SCRIPT
 
-$script2 = <<-SCRIPT
+$haproxyscript = <<-SCRIPT
 echo '10.0.0.100       haproxy1   haproxy1' >> /etc/hosts
 echo '10.0.0.101       web1       web1' >> /etc/hosts
 echo '10.0.0.102       web2       web2' >> /etc/hosts
@@ -17,6 +21,23 @@ sudo apt-get install software-properties-common -y
 sudo add-apt-repository ppa:vbernat/haproxy-1.8 -y
 sudo apt-get update -y
 sudo apt-get install haproxy=1.8.\* -y
+sudo cat <<EOT >> /etc/haproxy/haproxy.cfg
+frontend myproxy
+        bind *:8080
+        bind 10.0.0.100:8080
+        default_backend mywebservers
+
+backend mywebservers
+        server web1 10.0.0.101:80
+        server web2 10.0.0.102:80
+
+listen stats
+        bind *:8080
+        mode  http
+        stats enable
+        stats uri /stats
+        stats auth admin:Password1
+EOT
 sudo systemctl enable haproxy
 sudo systemctl start haproxy
 SCRIPT
@@ -30,9 +51,9 @@ Vagrant.configure("2") do |config|
       v.name = "haproxy1"
       v.customize ["modifyvm", :id, "--memory", 1024]
       v.customize ["modifyvm", :id, "--cpus", 1]
-      v.customize ["modifyvm", :id, "--name", "haproxy1"]
+      v.customize ["modifyvm", :id, "--name", "server1"]
     end
-    haproxyserver.vm.provision "shell", inline: $script2
+    haproxyserver.vm.provision "shell", inline: $haproxyscript
   end
 
   config.vm.define "web1" do |web1|
@@ -45,7 +66,8 @@ Vagrant.configure("2") do |config|
       v.customize ["modifyvm", :id, "--cpus", 1]
       v.customize ["modifyvm", :id, "--name", "web1"]
     end
-    web1.vm.provision "shell", inline: $script1
+    web1.vm.provision "shell", inline: $webscript, \
+      env: {"HOSTINFO" => "Web1 - 10.0.0.101"}
   end
 
   config.vm.define "web2" do |web2|
@@ -58,6 +80,7 @@ Vagrant.configure("2") do |config|
       v.customize ["modifyvm", :id, "--cpus", 1]
       v.customize ["modifyvm", :id, "--name", "web2"]
     end
-    web2.vm.provision "shell", inline: $script1
+    web2.vm.provision "shell", inline: $webscript, \
+      env: {"HOSTINFO" => "Web2 - 10.0.0.102"}
   end
 end
